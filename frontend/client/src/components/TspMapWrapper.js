@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 
 import './styles/responsiveMap.css';
 import {Map, Marker, InfoWindow} from 'google-maps-react'
+import {MapDirection} from './MapDirection'
 
 class TspMapWrapper extends Component {
 
@@ -83,7 +84,8 @@ class TspMapWrapper extends Component {
                 position: 'relative',
                 width: undefined,
                 height: undefined
-            }} zoom={5}
+            }}
+            zoom={5}
             initialCenter={this.props.initialCenter}
             streetViewControl={false}
             disableDoubleClickZoom={true}
@@ -100,6 +102,7 @@ class TspMapWrapper extends Component {
                 <InfoWindow marker={this.state.activeMapMarker} visible={this.state.showingInfoWindow}>
                     {this.renderActiveMarker()}
                 </InfoWindow>
+                <MapDirection route={this.props.route} />
             </Map>
         )
     }

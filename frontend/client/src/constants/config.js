@@ -1,3 +1,3 @@
 export const GOOGLE_MAPS_API_KEY = "AIzaSyDKEUyP74Ul4tzVaFaxypn86VFjN-zU7Bw"
-
-export default {} 
+export const MAX_PLACES = 10
+export default {}

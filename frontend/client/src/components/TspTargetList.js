@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
+
+import {MAX_PLACES} from '../constants/config'
+
 class TspTargetList extends Component {
 
   renderPlaces()
@@ -25,12 +28,43 @@ class TspTargetList extends Component {
                           <span className="glyphicon glyphicon-pushpin" aria-hidden="true"></span>
                         </button>
                         <button type="button" className="btn btn-danger btn-sm" onClick={this.props.onRemovePlace.bind(this, place)}>
-                          <span className="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                          <span className="glyphicon glyphicon-trash" aria-hidden="true"></span>
                         </button>
                       </td>
                     </tr>);
               }
         );
+  }
+
+  renderTableFooter()
+  {
+    let footerText = null;
+    if (this.props.places.length >= 0)
+    {
+      if(this.props.places.length === 1)
+      {
+        footerText = "one Place"
+      }
+      else
+      {
+        footerText = this.props.places.length + " places"
+      }
+
+      if(this.props.places.length < 3)
+      {
+        footerText += ", " + (3 - this.props.places.length)+ " more required to start"
+      }
+      else if(this.props.places.length >= MAX_PLACES)
+      {
+        footerText += ", maximum reached."
+      }
+
+      }
+    return (<tfoot>
+      <tr>
+        <td colSpan="3">{footerText}</td>
+      </tr>
+    </tfoot>);
   }
 
   render()
@@ -47,6 +81,7 @@ class TspTargetList extends Component {
           <tbody>
             {this.renderPlaces()}
           </tbody>
+          {this.renderTableFooter()}
         </table>
       </div>
     );
