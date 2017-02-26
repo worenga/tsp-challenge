@@ -1,11 +1,15 @@
 import React, {Component} from 'react';
 import {GoogleApiWrapper} from 'google-maps-react'
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+
 import {GOOGLE_MAPS_API_KEY as google_api_key} from '../constants/config.js'
+
 
 import calculateRoundTrip from '../processing/calculateRoundTrip'
 import TspTargetList from './TspTargetList'
 import TspSearchForm from './TspSearchForm'
 import TspMapWrapper from './TspMapWrapper'
+import TspRoute from './TspRoute'
 
 const initialPlaces = []
 
@@ -16,10 +20,11 @@ class AppWrapper extends Component {
         super(props);
         this.state = {
             places: initialPlaces,
-            mapCenter: undefined,
             isProcessing: false,
             percentageCompleted: 0,
-            route: undefined
+            route: undefined,
+            currentTabIndex: 0,
+            highlightedPlace: undefined,
         };
     }
 
@@ -47,18 +52,27 @@ class AppWrapper extends Component {
 
     removePlace(placeToRemove)
     {
+        if(this.state.highlightedPlace)
+        {
+            if(this.state.highlightedPlace.place_id === placeToRemove.place_id){
+                this.clearHighlightedPlace();
+            }
+
+        }
         this.setState({
             places: this.state.places.filter((place) => {
                 return place.place_id !== placeToRemove.place_id;
             })
         });
-        this.setState({route:undefined});
+        this.clearRoute();
     }
 
     focusPlace(placeToFocus)
     {
-        console.log(placeToFocus);
-        this.setState({mapCenter: placeToFocus.geometry.location});
+        const mapCenter = {lat: placeToFocus.geometry.location.lat(),
+                        lng: placeToFocus.geometry.location.lng()};
+
+        this.setState({highlightedPlace: placeToFocus, mapCenter: mapCenter });
     }
 
     _progressCallback(percentageCompleted)
@@ -91,7 +105,7 @@ class AppWrapper extends Component {
 
     clearRoute()
     {
-        this.setState({route:undefined});
+        this.setState({route:undefined, currentTabIndex:0});
     }
 
     renderProgress()
@@ -107,11 +121,21 @@ class AppWrapper extends Component {
         );
     }
 
+    handleSelect(index,last)
+    {
+        this.setState({currentTabIndex:index});
+    }
+
+    clearHighlightedPlace()
+    {
+        this.setState({highlightedPlace:undefined});
+    }
+
     render()
     {
         if (!this.props.loaded) {
             return <div>
-                Loading...
+                Loading..., you must have Internet connectivity to run this Application!
             </div>
         }
 
@@ -122,27 +146,44 @@ class AppWrapper extends Component {
                 </div>
                 <div className="row">
                     <div className="col-xs-12 col-sm-6 col-md-8">
-                        <TspMapWrapper places={this.state.places} center={this.state.mapCenter} onAddPlace={this.addPlace.bind(this)} google={this.props.google} route={this.state.route}/>
+                        <TspMapWrapper places={this.state.places} highlightedPlace={this.state.highlightedPlace} center={this.state.mapCenter} onClearHighlight={this.clearHighlightedPlace.bind(this)} onAddPlace={this.addPlace.bind(this)} google={this.props.google} route={this.state.route}/>
                     </div>
                     <div className="col-xs-6 col-md-4">
-                        <TspSearchForm google={this.props.google} onAddPlace={this.addPlace.bind(this)}/>
-                        <TspTargetList places={this.state.places} onRemovePlace={this.removePlace.bind(this)} onFocusPlace={this.focusPlace.bind(this)}/>
-                        <form>
-                            {this.state.isProcessing
-                                ? this.renderProgress()
-                                : null}
+                        <Tabs
+                            onSelect={this.handleSelect.bind(this)}
+                            selectedIndex={this.state.currentTabIndex}
+                          >
+                              <TabList>
+                                  <Tab>Places</Tab>
+                                  <Tab disabled={this.state.route === undefined}>Route</Tab>
+                                  <Tab>Settings</Tab>
+                              </TabList>
+                        <TabPanel>
+                            <TspSearchForm google={this.props.google} onAddPlace={this.addPlace.bind(this)}/>
+                            <TspTargetList places={this.state.places} onRemovePlace={this.removePlace.bind(this)} onFocusPlace={this.focusPlace.bind(this)}/>
+                        </TabPanel>
+                        <TabPanel><h2>Route</h2>
+                            <TspRoute route={this.state.route}/>
+                        </TabPanel>
+                        <TabPanel><h2>Settings</h2></TabPanel>
+                        </Tabs>
+                            <form>
+                                {this.state.isProcessing
+                                    ? this.renderProgress()
+                                    : null}
 
-                            <div className="btn-group" role="group">
-                                <button disabled={this.state.route === undefined} type="button" className="btn btn-danger btn-lg" onClick={this.clearRoute.bind(this)}>
-                                    <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                    Clear Route
-                                </button>
-                                <button disabled={!this.canCalculate()} type="button" className="btn btn-primary btn-lg" onClick={this.calculateRoundTrip.bind(this)}>
-                                    <span className="glyphicon glyphicon-play-circle" aria-hidden="true"></span>
-                                    Calculate Round Trip
-                                </button>
-                            </div>
-                        </form>
+                                <div className="btn-group" role="group">
+                                    <button disabled={this.state.route === undefined} type="button" className="btn btn-danger btn-lg" onClick={this.clearRoute.bind(this)}>
+                                        <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                        Clear Route
+                                    </button>
+                                    <button disabled={!this.canCalculate()} type="button" className="btn btn-primary btn-lg" onClick={this.calculateRoundTrip.bind(this)}>
+                                        <span className="glyphicon glyphicon-play-circle" aria-hidden="true"></span>
+                                        Calculate Round Trip
+                                    </button>
+                                </div>
+                            </form>
+
                     </div>
                 </div>
                 {this.props.children}

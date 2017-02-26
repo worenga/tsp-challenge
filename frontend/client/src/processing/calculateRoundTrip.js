@@ -29,6 +29,11 @@ export default function calculateRoundTrip(google, places, progresscb=(progress)
         places: places
     }
 
+    //TODO 1.) Construct Distance Matrix
+    //TODO 2.) Validate given Distance Matrix check if there are fields that need fallback
+    //TODO 3.) Create a job in the backend
+    //TODO 4.) Having a job in the backend, query its status.
+
 
     let recurse = function (context)   // asynchronous recursive function
     {

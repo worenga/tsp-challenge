@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
-
-import './styles/responsiveMap.css';
+import styles from './styles/responsiveMap.css'
 import {Map, Marker, InfoWindow} from 'google-maps-react'
 import {MapDirection} from './MapDirection'
 
@@ -77,33 +76,36 @@ class TspMapWrapper extends Component {
     render()
     {
         return (
-            <Map
-            google={this.props.google}
-            className="iframecontainer"
-            containerStyle={{
-                position: 'relative',
-                width: undefined,
-                height: undefined
-            }}
-            zoom={5}
-            initialCenter={this.props.initialCenter}
-            streetViewControl={false}
-            disableDoubleClickZoom={true}
-            center={this.props.center}
-            onClick={this.onMapClicked.bind(this)}>
+            <div className="embed-responsive embed-responsive-16by9">
+                <Map
+                google={this.props.google}
+                zoom={5}
+                className="iframecontainer"
+                containerStyle={{
+                    position: 'relative',
+                    width: undefined,
+                    height: undefined
+                }}
+                initialCenter={this.props.initialCenter}
+                streetViewControl={false}
+                disableDoubleClickZoom={true}
+                center={this.props.center}
+                onClick={this.onMapClicked.bind(this)}>
 
-                {this.props.places.map((place, index) => {
-                    return (<Marker key={index} onClick={this.onMarkerClick.bind(this)} position={{
-                        lat: place.geometry.location.lat(),
-                        lng: place.geometry.location.lng()
-                    }} place={place}/>)
-                })}
+                    {this.props.places.map((place, index) => {
+                        return (<Marker key={index} onClick={this.onMarkerClick.bind(this)} position={{
+                            lat: place.geometry.location.lat(),
+                            lng: place.geometry.location.lng()
+                        }} place={place}/>)
+                    })}
 
-                <InfoWindow marker={this.state.activeMapMarker} visible={this.state.showingInfoWindow}>
-                    {this.renderActiveMarker()}
-                </InfoWindow>
-                <MapDirection route={this.props.route} />
-            </Map>
+                    <InfoWindow marker={this.state.activeMapMarker} visible={this.state.showingInfoWindow}>
+                        {this.renderActiveMarker()}
+                    </InfoWindow>
+
+                    <MapDirection route={this.props.route} />
+                </Map>
+            </div>
         )
     }
 }
