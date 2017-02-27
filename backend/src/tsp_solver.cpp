@@ -2,6 +2,8 @@
 #include <cassert>
 #include <memory>
 #include <unordered_map>
+#include <functional>
+
 
 #include <geneial/algorithm/SteadyStateAlgorithm.h>
 #include <geneial/algorithm/criteria/MaxGenerationCriterion.h>
@@ -13,6 +15,8 @@
 #include <geneial/algorithm/criteria/MaxGenerationCriterion.h>
 #include <geneial/algorithm/diagnostics/Diagnostics.h>
 #include <geneial/utility/mixins/Hasher.h>
+#include <geneial/algorithm/observer/AlgorithmObserver.h>
+
 
 #include "tsp_solver.h"
 #include "tsp_solution_evaluator.hpp"
@@ -28,6 +32,7 @@ using namespace geneial::algorithm::stopping_criteria;
 
 using namespace geneial::population;
 using namespace geneial::population::chromosome;
+using namespace geneial::population::management;
 
 using namespace geneial::operation::crossover;
 using namespace geneial::operation::mutation;
@@ -36,8 +41,35 @@ using geneial::population::management::StatisticBookkeeper;
 using geneial::algorithm::Diagnostics;
 
 
+
+class IterationObserver: public AlgorithmObserver<double>
+{
+    iterationcb _cb;
+    int _num_iterations;
+public:
+    IterationObserver(iterationcb cb, int num_interations): _cb(cb), _num_iterations(num_interations)
+    {
+        this->addSubscribedEvent(AlgorithmObserver<double>::AFTER_GENERATION);
+    }
+    virtual ~IterationObserver()
+    {
+    }
+
+    virtual void updateAfterGeneration(BaseManager<double> &manager) override
+    {
+        auto current_iteration = manager.getPopulation().getAge();
+        if(current_iteration % (_num_iterations / 100) == 0)
+        {
+            auto bestChromosome = std::dynamic_pointer_cast<MultiValueChromosome<int, double>>(manager.getHighestFitnessChromosome());
+            _cb(_num_iterations,current_iteration,bestChromosome->getContainer());
+        }
+    }
+};
+
+
+
 std::vector<int>
-TSPSolve(const TSPRunConfig & cfg)
+TSPSolve(const TSPRunConfig & cfg,iterationcb cb)
 {
 
     const int num_nodes = cfg.getDistanceMatrix()->getDimension();
@@ -74,6 +106,9 @@ TSPSolve(const TSPRunConfig & cfg)
     .setMutationOperation(permutationMutationBuilder.create())
     .setStoppingCriterion(stoppingCriterion)
     .create();
+
+	algorithm->registerObserver(std::make_shared<IterationObserver>(cb, cfg.getIterations()));
+
 
     algorithm->getPopulationSettings().setMaxChromosomes(num_nodes*2);
     algorithm->solve();

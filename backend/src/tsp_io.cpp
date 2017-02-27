@@ -92,12 +92,14 @@ TSPRunConfig TSPReadStdin()
 }
 
 void
-TSPOutputProgress(int num_iterations)
+TSPOutputProgress(int total_iterations, int current_iteration, const std::vector<int>& bestPermutation)
 {
     json o;
     o["event"] = "PROGRESS";
-    o["iterations_done"] = num_iterations;
-    std::cout << o ;
+    o["pct_done"] = current_iteration / static_cast<double>(total_iterations);
+    o["iterations_done"] = current_iteration;
+    o["best_path"] = bestPermutation;
+    std::cout << o <<std::endl;
 }
 
 void

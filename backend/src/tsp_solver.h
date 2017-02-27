@@ -6,6 +6,8 @@
 
 namespace tsp_challenge {
 
-std::vector<int> TSPSolve(const TSPRunConfig & cfg);
+using iterationcb = std::function<void(const int,const int,const std::vector<int>&)>;
+
+std::vector<int> TSPSolve(const TSPRunConfig & cfg, iterationcb cb);
 
 }

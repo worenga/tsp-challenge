@@ -19,7 +19,7 @@ int main(int argc, char **argv)
         exit (EXIT_FAILURE);
     }
 
-    auto result = TSPSolve(cfg);
+    auto result = TSPSolve(cfg, TSPOutputProgress);
     TSPOutputFinalResult(result);
 
     exit (EXIT_SUCCESS);

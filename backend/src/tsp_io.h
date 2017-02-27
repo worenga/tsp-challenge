@@ -16,7 +16,7 @@ using namespace geneial::population::chromosome;
 
 TSPRunConfig TSPReadStdin();
 
-void TSPOutputProgress(double pct_done);
+void TSPOutputProgress(const int total_iterations, const int current_iteration, const std::vector<int>& bestPermutation);
 
 void TSPOutputError(const std::string& error_message);
 
