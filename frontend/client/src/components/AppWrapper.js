@@ -146,7 +146,7 @@ class AppWrapper extends Component {
                 </div>
                 <div className="row">
                     <div className="col-xs-12 col-sm-6 col-md-8">
-                        <TspMapWrapper places={this.state.places} highlightedPlace={this.state.highlightedPlace} center={this.state.mapCenter} onClearHighlight={this.clearHighlightedPlace.bind(this)} onAddPlace={this.addPlace.bind(this)} google={this.props.google} route={this.state.route}/>
+                        <TspMapWrapper places={this.state.places} highlightedPlace={this.state.highlightedPlace} center={this.state.mapCenter} onClearHighlight={this.clearHighlightedPlace.bind(this)} onAddPlace={this.addPlace.bind(this)} onRemovePlace={this.removePlace.bind(this)} google={this.props.google} route={this.state.route}/>
                     </div>
                     <div className="col-xs-6 col-md-4">
                         <Tabs
@@ -159,7 +159,7 @@ class AppWrapper extends Component {
                                   <Tab>Settings</Tab>
                               </TabList>
                         <TabPanel>
-                            <TspSearchForm google={this.props.google} onAddPlace={this.addPlace.bind(this)}/>
+                            <TspSearchForm google={this.props.google} onAddPlace={this.addPlace.bind(this)} />
                             <TspTargetList places={this.state.places} onRemovePlace={this.removePlace.bind(this)} onFocusPlace={this.focusPlace.bind(this)}/>
                         </TabPanel>
                         <TabPanel><h2>Route</h2>

@@ -61,16 +61,25 @@ class TspMapWrapper extends Component {
         }
     }
 
+    meh(place)
+    {
+        console.log("print");
+    }
+
     renderActiveMarker()
     {
         let innerHtml = '';
+        let place = undefined;
         if (this.state.activeMarker) {
+            place = this.state.activeMarker.place;
             innerHtml = this.state.activeMarker.place.adr_address;
         }
 
-        return <div dangerouslySetInnerHTML={{
-            __html: innerHtml
-        }}/>
+        return (<div>
+            <div dangerouslySetInnerHTML={{
+                __html: innerHtml
+            }}/>
+            </div>);
     }
 
     render()

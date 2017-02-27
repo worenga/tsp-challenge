@@ -2,6 +2,7 @@
   "name": "tsp-frontend-client",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:4000",
   "devDependencies": {
     "react-scripts": "0.8.5"
   },
