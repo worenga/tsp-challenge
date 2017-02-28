@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const STATUS_PENDING='STATUS_PENDING'
 const STATUS_FINISHED='STATUS_FINISHED'
 
@@ -58,6 +60,17 @@ export default function calculateRoundTrip(google, places, options, progresscb=(
         console.log("Distance MatrixBefore", distanceMatrix);
         fixMissingValues(distanceMatrix, fallbackDistanceMatrix)
         console.log("Distance Matrix", distanceMatrix);
+           axios.post('/api/solver/start', {
+            iterations: 100000,
+            distanceMatrix: distanceMatrix
+          })
+          .then(function (response) {
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+
         }
     )
 
