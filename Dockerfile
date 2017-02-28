@@ -40,5 +40,4 @@ WORKDIR ${INSTALL_DIR}/frontend/server
 RUN npm install
 
 EXPOSE $PORT
-
-CMD ["pm2", "start", "processes.json", "--no-daemon"]
+CMD service redis-server start && pm2 start processes.json --no-daemon
