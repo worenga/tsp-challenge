@@ -104,11 +104,18 @@ export class MapDirection extends Component {
         if (!route) {
             let copyPolyLines = this.fallBackPolyLines;
             this.fallBackPolyLines = [];
-            for (let display in this.directionsDisplay) {
-                this.directionsDisplay[display].set('directions', null);
+
+            for (let display of this.directionsDisplay)
+            {
+                if(this.directionsDisplay[display])
+                {
+                    this.directionsDisplay[display].set('directions', null);
+                }
+
             }
 
-            for (let polyline of copyPolyLines) {
+            for (let polyline of copyPolyLines)
+            {
                 polyline.setMap(null)
             }
 
@@ -116,18 +123,18 @@ export class MapDirection extends Component {
             for (let i = 0; i < route.length; i++) {
                 let start,
                     end;
-                if (i != route.length - 1) {
+                if (i !== route.length - 1) {
                     start = i;
                     end = i + 1;
                 } else {
                     start = i;
                     end = 0;
                 }
-                runFunctionWithRetriesAndMaxTimeout(function() {
+                runFunctionWithRetriesAndMaxTimeout(function(){
                     return this.requestDirections(route[start], route[end], i)
-                }.bind(this), 500, 200, 25000).then((status, result) => {
+                }.bind(this), 500, 200, 25000).then(
+                    (status, result) => {
                     if (status === "ZERO_RESULTS") {
-
                         let routePath = [
                             {
                                 lat: route[start].geometry.location.lat(),
@@ -139,15 +146,12 @@ export class MapDirection extends Component {
                         ];
                         let routePoly = new google.maps.Polyline({
                             path: routePath,
-                            //geodesic: true,
                             strokeColor: '#FF0000',
                             strokeOpacity: 1.0,
                             strokeWeight: 2
                         });
-
                         routePoly.setMap(map);
                         this.fallBackPolyLines.push(routePoly);
-
                     }
                 }).catch(() => {
                     console.log("ERROR!!!")

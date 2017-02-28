@@ -95,7 +95,7 @@ void
 TSPOutputProgress(int total_iterations, int current_iteration, const std::vector<int>& bestPermutation)
 {
     json o;
-    o["event"] = "PROGRESS";
+    o["status"] = "PROGRESS";
     o["pct_done"] = current_iteration / static_cast<double>(total_iterations);
     o["iterations_done"] = current_iteration;
     o["best_path"] = bestPermutation;
@@ -106,7 +106,7 @@ void
 TSPOutputError(const std::string& error_message)
 {
     json o;
-    o["event"] = "ERROR";
+    o["status"] = "ERROR";
     o["message"] = error_message;
     std::cout << o ;
 }
@@ -115,7 +115,7 @@ void
 TSPOutputFinalResult(const std::vector<int>& bestPermutation)
 {
     json o;
-    o["event"] = "DONE";
+    o["status"] = "DONE";
     o["best_path"] = bestPermutation;
     std::cout << o;
 }

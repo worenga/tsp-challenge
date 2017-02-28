@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import styles from './styles/responsiveMap.css'
+import './styles/responsiveMap.css'
 import {Map, Marker, InfoWindow} from 'google-maps-react'
 import {MapDirection} from './MapDirection'
 
@@ -69,10 +69,9 @@ class TspMapWrapper extends Component {
     renderActiveMarker()
     {
         let innerHtml = '';
-        let place = undefined;
         if (this.state.activeMarker) {
-            place = this.state.activeMarker.place;
-            innerHtml = this.state.activeMarker.place.adr_address;
+            let place = this.state.activeMarker.place;
+            innerHtml = place.adr_address;
         }
 
         return (<div>

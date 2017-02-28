@@ -23,7 +23,9 @@ export function getDistanceMatrix(google, places, options, fallbackDistanceMatri
         return new Promise((reject, resolve) => {
             resolve(fallbackDistanceMatrix);
         })
-    } else {
+    }
+    else
+    {
 
         //Transform places to required format:
         let transformedPlaces = places.map((place) => {
@@ -51,7 +53,6 @@ export function getDistanceMatrix(google, places, options, fallbackDistanceMatri
             let origins = response.originAddresses;
             let destinations = response.destinationAddresses;
 
-            const dim = origins.length;
             let distanceMatrix = [];
 
             for (let i = 0; i < origins.length; i++) {
@@ -67,10 +68,15 @@ export function getDistanceMatrix(google, places, options, fallbackDistanceMatri
                     if (status !== google.maps.DistanceMatrixElementStatus.OK) {
                         console.log("Error Route from ", from, "to", to, "cannot be computed!")
                         metric = undefined;
-                    } else {
-                        if (options.useDuration) {
+                    }
+                    else
+                    {
+                        if (options.useDuration)
+                        {
                             metric = element.duration.value;
-                        } else {
+                        }
+                        else
+                        {
                             metric = element.distance.value / 1000.0; // to kilometers
                         }
                     }
