@@ -61,7 +61,7 @@ export default function calculateRoundTrip(google, places, options, progresscb=(
         fixMissingValues(distanceMatrix, fallbackDistanceMatrix)
         console.log("Distance Matrix", distanceMatrix);
            axios.post('/api/solver/start', {
-            iterations: 100000,
+            iterations: 2000,
             distanceMatrix: distanceMatrix
           })
           .then(function (response) {

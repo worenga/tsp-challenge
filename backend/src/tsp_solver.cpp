@@ -58,7 +58,7 @@ public:
     virtual void updateAfterGeneration(BaseManager<double> &manager) override
     {
         auto current_iteration = manager.getPopulation().getAge();
-        if(current_iteration % (_num_iterations / 100) == 0)
+        if((current_iteration % std::max(1,_num_iterations / 100)) == 0)
         {
             auto bestChromosome = std::dynamic_pointer_cast<MultiValueChromosome<int, double>>(manager.getHighestFitnessChromosome());
             _cb(_num_iterations,current_iteration,bestChromosome->getContainer());

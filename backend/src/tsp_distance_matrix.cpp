@@ -1,5 +1,7 @@
-#include "tsp_distance_matrix.h"
+#include <iostream>
 
+#include "tsp_distance_matrix.h"
+#include <cassert>
 namespace tsp_challenge {
 
 void TSPDistanceMatrix::registerDistance(const int idxPointStart, const int idxPointEnd, double distance)
@@ -9,6 +11,7 @@ void TSPDistanceMatrix::registerDistance(const int idxPointStart, const int idxP
 
 double TSPDistanceMatrix::getDistance(const int idxPointStart, const int idxPointEnd) const
 {
+    assert(idxPointStart*_dimension+idxPointEnd < _dimension*_dimension);
     return _distances[idxPointStart*_dimension+idxPointEnd];
 }
 
@@ -19,13 +22,14 @@ double TSPDistanceMatrix::getTotalDistanceForRoundTrip(const std::vector<int>& i
     {
         for(size_t i=0; i < indices.size(); i++)
         {
+
             if(i != indices.size() - 1)
             {
                 distanceTotal += getDistance(indices[i],indices[i+1]);
             }
             else
             {
-                distanceTotal += getDistance(indices[i+1],indices[0]);
+                distanceTotal += getDistance(indices[i],indices[0]);
             }
         }
     }
