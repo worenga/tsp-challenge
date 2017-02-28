@@ -1,4 +1,4 @@
-import {Component} from 'react';
+import React, {Component} from 'react';
 
 // Helper delay function to wait a specific amount of time.
 function delay(time) {
@@ -45,26 +45,18 @@ export class MapDirection extends Component {
         this.directionsService = undefined;
         this.directionsDisplay = [];
         this.fallBackPolyLines = [];
+        this.routeStack = [];
+        this.processedRouteObjects = 0;
     }
 
-    requestDirections(from, to, renderIdx)
+    requestDirections(from, to, display, service)
     {
-        let copyPolyLines = this.fallBackPolyLines;
-        this.fallBackPolyLines = [];
-        for (let polyline of copyPolyLines) {
-            polyline.setMap(null)
-        }
         return new Promise((resolve, reject) => {
             const {google, map} = this.props;
             if (!google || !map) {
                 return;
             }
-            if (!this.directionsDisplay[renderIdx]) {
-                this.directionsDisplay[renderIdx] = new google.maps.DirectionsRenderer({suppressMarkers: true, preserveViewport: true});
-                this.directionsDisplay[renderIdx].setMap(this.props.map);
-            } else {
-                this.directionsDisplay[renderIdx].set('directions', null);
-            }
+            display.set('directions', null);
             let start = {
                 'placeId': from.place_id
             }
@@ -77,17 +69,112 @@ export class MapDirection extends Component {
                 travelMode: 'DRIVING', //TODO
                 provideRouteAlternatives: false
             };
-            this.directionsService.route(request, function(result, status) {
+            service.route(request, function(result, status) {
+                console.log("STATUS:::", status);
                 if (status === 'OK') {
-                    this.directionsDisplay[renderIdx].setDirections(result);
+                    display.setDirections(result);
                     resolve(status, result);
                 } else if (status === "ZERO_RESULTS") {
                     resolve(status, result);
                 } else {
+
                     reject(status, result);
                 }
-            }.bind(this));
+            });
         });
+    }
+
+    renderRoutePart(start, end, display)
+    {
+        const {route,google,map} = this.props;
+
+        if(!route)
+        {
+            return new Promise(function(resolve) {
+                resolve();
+            });
+        }
+        return new Promise(function(_resolve) {
+            return runFunctionWithRetriesAndMaxTimeout(function(){
+                return this.requestDirections(route[start], route[end],this.directionsDisplay[display],this.directionsService)
+            }.bind(this), 500, 200, 25000).then(
+                (status, result) => {
+                if (status === "ZERO_RESULTS") {
+                    let routePath = [
+                        {
+                            lat: route[start].geometry.location.lat(),
+                            lng: route[start].geometry.location.lng()
+                        }, {
+                            lat: route[end].geometry.location.lat(),
+                            lng: route[end].geometry.location.lng()
+                        }
+                    ];
+                    let routePoly = new google.maps.Polyline({
+                        path: routePath,
+                        strokeColor: '#FF0000',
+                        strokeOpacity: 1.0,
+                        strokeWeight: 2
+                    });
+
+                    routePoly.setMap(map);
+                    this.fallBackPolyLines.push(routePoly);
+                }
+                _resolve();
+            }).catch(() => {
+                //If there was some kind of timeout..
+                let routePath = [
+                    {
+                        lat: route[start].geometry.location.lat(),
+                        lng: route[start].geometry.location.lng()
+                    }, {
+                        lat: route[end].geometry.location.lat(),
+                        lng: route[end].geometry.location.lng()
+                    }
+                ];
+                let routePoly = new google.maps.Polyline({
+                    path: routePath,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2
+                });
+                routePoly.setMap(map);
+                this.fallBackPolyLines.push(routePoly);
+                _resolve();
+            })
+        }.bind(this));
+    }
+
+
+    renderRouteStack()
+    {
+        if(this.routeStack.length > 0 )
+        {
+            let nextRouteToRender = this.routeStack.pop();
+            this.renderRoutePart(nextRouteToRender.start,nextRouteToRender.end,nextRouteToRender.display).then(
+                () =>
+                {
+                    this.processedRouteObjects++;
+                    if(this.props.route && this.props.route.length > 0)
+                    {
+                        this.props.onRenderDirectionProgress(this.processedRouteObjects/this.props.route.length);
+                    }
+                    this.renderRouteStack()
+                    return;
+                }
+            )
+        }
+        else
+        {
+            this.props.onFinishRenderDirections();
+        }
+    }
+
+    componentDidUpdate(prevProps)
+    {
+        if (this.props.route !== prevProps.route)
+        {
+            this.getDirections();
+        }
     }
 
     getDirections()
@@ -101,25 +188,30 @@ export class MapDirection extends Component {
             this.directionsService = new google.maps.DirectionsService();
         }
 
-        if (!route) {
-            let copyPolyLines = this.fallBackPolyLines;
-            this.fallBackPolyLines = [];
+        let copyPolyLines = this.fallBackPolyLines;
+        this.fallBackPolyLines = [];
 
-            for (let display of this.directionsDisplay)
+        for (let display of this.directionsDisplay)
+        {
+            if(display)
             {
-                if(this.directionsDisplay[display])
-                {
-                    this.directionsDisplay[display].set('directions', null);
-                }
-
+                display.set('directions', null);
             }
 
-            for (let polyline of copyPolyLines)
-            {
-                polyline.setMap(null)
-            }
+        }
 
-        } else {
+        for (let polyline of copyPolyLines)
+        {
+            polyline.setMap(null)
+        }
+
+        this.routeStack = [];
+
+        if(route)
+        {
+            this.processedRouteObjects = 0;
+            this.props.onStartRenderDirections();
+
             for (let i = 0; i < route.length; i++) {
                 let start,
                     end;
@@ -130,42 +222,38 @@ export class MapDirection extends Component {
                     start = i;
                     end = 0;
                 }
-                runFunctionWithRetriesAndMaxTimeout(function(){
-                    return this.requestDirections(route[start], route[end], i)
-                }.bind(this), 500, 200, 25000).then(
-                    (status, result) => {
-                    if (status === "ZERO_RESULTS") {
-                        let routePath = [
-                            {
-                                lat: route[start].geometry.location.lat(),
-                                lng: route[start].geometry.location.lng()
-                            }, {
-                                lat: route[end].geometry.location.lat(),
-                                lng: route[end].geometry.location.lng()
-                            }
-                        ];
-                        let routePoly = new google.maps.Polyline({
-                            path: routePath,
-                            strokeColor: '#FF0000',
-                            strokeOpacity: 1.0,
-                            strokeWeight: 2
-                        });
-                        routePoly.setMap(map);
-                        this.fallBackPolyLines.push(routePoly);
-                    }
-                }).catch(() => {
-                    console.log("ERROR!!!")
-                })
+
+                if(!this.directionsDisplay[i])
+                {
+                    this.directionsDisplay[i] = new google.maps.DirectionsRenderer({suppressMarkers: true, preserveViewport: true});
+                    this.directionsDisplay[i].setMap(this.props.map);
+                }
+
+                this.routeStack.push({start:start,end:end,display:i})
             }
+
+            this.renderRouteStack();
         }
     }
 
     render()
     {
-        this.getDirections();
         return null;
     }
 
 }
+
+MapDirection.propTypes = {
+  onStartRenderDirections: React.PropTypes.func,
+  onRenderDirectionProgress: React.PropTypes.func,
+  onFinishRenderDirections: React.PropTypes.func
+}
+
+MapDirection.defaultProps = {
+  onStartRenderDirections: () => {},
+  onRenderDirectionProgress: (pct_done) => {},
+  onFinishRenderDirections: () => {}
+}
+
 
 export default MapDirection;

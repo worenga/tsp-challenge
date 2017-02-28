@@ -111,7 +111,12 @@ class TspMapWrapper extends Component {
                         {this.renderActiveMarker()}
                     </InfoWindow>
 
-                    <MapDirection route={this.props.route} />
+                    <MapDirection
+                        route={this.props.route}
+                        onStartRenderDirections={this.props.onStartRenderDirections}
+                        onRenderDirectionProgress={this.props.onRenderDirectionProgress}
+                        onFinishRenderDirections={this.props.onFinishRenderDirections}
+                     />
                 </Map>
             </div>
         )
@@ -120,14 +125,20 @@ class TspMapWrapper extends Component {
 
 TspMapWrapper.propTypes = {
     google: React.PropTypes.object.isRequired,
-    onAddPlace: React.PropTypes.function,
+    onAddPlace: React.PropTypes.func,
     center: React.PropTypes.object,
-    initialCenter: React.PropTypes.object
+    initialCenter: React.PropTypes.object,
+    onStartRenderDirections: React.PropTypes.func,
+    onRenderDirectionProgress: React.PropTypes.func,
+    onFinishRenderDirections: React.PropTypes.func
 }
 
 TspMapWrapper.defaultProps = {
-    onAddPlace: (place) => {},
     center: undefined,
+    onAddPlace: (place) => {},
+    onStartRenderDirections: () => {},
+    onRenderDirectionProgress: (pct_done) => {},
+    onFinishRenderDirections: () => {},
     initialCenter: {
         lat: 50.98586317954162, //Centered to Germany
         lng: 10.450995415449142

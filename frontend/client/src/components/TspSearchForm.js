@@ -12,7 +12,6 @@ export class TspSearchForm extends Component {
   }
 
   renderAutoComplete() {
-    console.log("Trigger Render Autocomplete")
     const {google, onAddPlace} = this.props;
     if (!google) return;
 
@@ -23,7 +22,6 @@ export class TspSearchForm extends Component {
     autocomplete.addListener('place_changed', () => {
 
       const place = autocomplete.getPlace();
-      console.log("Place Changed: ", place)
       if (!place) {
         return;
       }
@@ -50,7 +48,7 @@ export class TspSearchForm extends Component {
 
 TspSearchForm.propTypes = {
   google: React.PropTypes.object.isRequired,
-  onAddPlace: React.PropTypes.function
+  onAddPlace: React.PropTypes.func
 }
 
 TspSearchForm.defaultProps = {

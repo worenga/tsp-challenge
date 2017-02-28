@@ -32,15 +32,13 @@ function queryStatus(context)
 
 function cleanup(context)
 {
-  return axios.get('/api/solver/cleanup/'+context.jobId);
+  return axios.post('/api/solver/cleanup/'+context.jobId);
 }
 
 function recurse(context)   // asynchronous recursive function
 {
     let decide = function( response )  // process async result and decide what to do
     {   // do something with asyncResult
-
-        console.log(response)
 
         if( response.data.status === STATUS_FINISHED )
         {
@@ -53,7 +51,7 @@ function recurse(context)   // asynchronous recursive function
         }
         else if(response.data.status === STATUS_PROGRESS_MADE)
         {
-          context.progressCallback(response.pct_done*100)
+          context.progressCallback(response.data.pct_done*100)
           return recurse(context);
         }
         else
@@ -65,7 +63,7 @@ function recurse(context)   // asynchronous recursive function
     return queryStatus(context).then(decide);
 }
 
-export default function calculateRoundTrip(google, places, options, progress_callback=(progress)=>{})
+export default function calculateRoundTrip(google, places, progress_callback, options)
 {
     options = options || {};
     options.travelMode = options.travelMode || google.maps.TravelMode.DRIVING;
@@ -77,47 +75,35 @@ export default function calculateRoundTrip(google, places, options, progress_cal
     }
 
     let fallbackDistanceMatrix = getFallBackDistanceMatrix(places);
-    getDistanceMatrix(google, places, options, fallbackDistanceMatrix).then((distanceMatrix) => {
-
-        fixMissingValues(distanceMatrix, fallbackDistanceMatrix)
-
-          axios.post('/api/solver/start', {
-            iterations: 2000,
+    return getDistanceMatrix(google, places, options, fallbackDistanceMatrix)
+    .then( (distanceMatrix) => {
+      fixMissingValues(distanceMatrix, fallbackDistanceMatrix)
+      return axios.post('/api/solver/start', {
+            iterations: 3000,
             distanceMatrix: distanceMatrix
           })
-          .then(function (response) {
-            console.log(response);
-            context.jobId = response.data.job_id;
+    .then(function (response) {
+      context.jobId = response.data.job_id;
+      return recurse(context);
+    })
+    .then((state) => {
+      if(!state.data.best_path)
+      {
+        throw Error("No best path found!");
 
-            return recurse(context).then(
-                (state) => {
+      }else{
 
-                     // first make a copy of the original sort array
-                     var rplaces = places.slice()
-
-                     // then proceed to shuffle the rsort array
-                     for(var idx = 0; idx < rplaces.length; idx++)
-                     {
-                        var swpIdx = idx + Math.floor(Math.random() * (rplaces.length - idx));
-                        // now swap elements at idx and swpIdx
-                        var tmp = rplaces[idx];
-                        rplaces[idx] = rplaces[swpIdx];
-                        rplaces[swpIdx] = tmp;
-                     }
-                     // here rsort[] will have been randomly shuffled (permuted)
-                     return rplaces
-
-                }
-            )
-
-          })
-          .catch((error) => {
-            console.log(error)
-          }).finally(
-            () => {
-              cleanup(context);
-            }
-          )
+        let new_place_order = []
+        state.data.best_path.forEach( idx => { new_place_order.push(places[idx])});
+        return new_place_order;
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+    })
+    .finally( () => {
+      cleanup(context);
+    });
 
         }
     )

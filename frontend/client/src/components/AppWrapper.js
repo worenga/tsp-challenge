@@ -20,8 +20,13 @@ class AppWrapper extends Component {
         super(props);
         this.state = {
             places: initialPlaces,
-            isProcessing: false,
-            percentageCompleted: 0,
+
+            isProcessingRoute: false,
+            percentagePctComplete: 0.0,
+
+            isRenderingDirections: false,
+            directionRenderingPctComplete: 0.0,
+
             route: undefined,
             currentTabIndex: 0,
             highlightedPlace: undefined,
@@ -75,29 +80,32 @@ class AppWrapper extends Component {
         this.setState({highlightedPlace: placeToFocus, mapCenter: mapCenter });
     }
 
-    _progressCallback(percentageCompleted)
+    progressCallback(percentagePctComplete)
     {
-        console.log("CALLBACK", percentageCompleted)
-        this.setState({percentageCompleted: percentageCompleted});
+        this.setState({percentagePctComplete: percentagePctComplete});
     }
 
     canCalculate()
     {
-        return this.state.places.length > 2 && !this.state.isProcessing
+        return this.state.places.length > 2 && !this.state.isProcessingRoute
     }
 
-    calculateRoundTrip()
+    computeBestRoute()
     {
+        this.clearRoute();
         if (this.canCalculate()) {
-            this.setState({isProcessing: true, percentageCompleted: 0});
+            this.setState({isProcessingRoute: true, percentagePctComplete: 0});
 
             return new Promise((resolve, reject) => {
-                let new_places = calculateRoundTrip(this.props.google, this.state.places, this._progressCallback.bind(this));
+                let new_places = calculateRoundTrip(this.props.google, this.state.places, this.progressCallback.bind(this));
                 resolve(new_places);
-            }).then((new_places) => {
-                this.setState({isProcessing: false, route: new_places});
+            })
+            .delay(100) //Give the css animation some time...
+            .then((new_places) => {
+                console.log(new_places)
+                this.setState({isProcessingRoute: false, route: new_places});
             }).catch((e) => {
-                this.setState({isProcessing: false});
+                this.setState({isProcessingRoute: false});
                 throw e
             });
         }
@@ -112,10 +120,40 @@ class AppWrapper extends Component {
     {
         return (
             <div className="progress">
-                <div className="progress-bar" role="progressbar" aria-valuenow={this.state.percentageCompleted} aria-valuemin="0" aria-valuemax="100" style={{
-                    width: this.state.percentageCompleted + '%'
+                <div className="progress-bar" role="progressbar" aria-valuenow={this.state.percentagePctComplete} aria-valuemin="0" aria-valuemax="100" style={{
+                    width: this.state.percentagePctComplete + '%'
                 }}>
-                    <span className="sr-only">{this.state.percentageCompleted}% complete</span>
+                    <span className="sr-only">{this.state.percentagePctComplete}% complete</span>
+                </div>
+            </div>
+        );
+    }
+
+    onStartRenderDirections()
+    {
+        this.setState({isRenderingDirections:true, directionRenderingPctComplete:0.0});
+    }
+
+    onRenderDirectionProgress(progress)
+    {
+        console.log(`Hello ${progress}`)
+        this.setState({directionRenderingPctComplete:progress*100});
+    }
+
+    onFinishRenderDirections()
+    {
+        this.setState({isRenderingDirections:false});
+    }
+
+    renderDirectionIndicator()
+    {
+        return (
+            <div className="progress">
+                <div className="progress-bar" role="progressbar" aria-valuenow={this.state.directionRenderingPctComplete} aria-valuemin="0" aria-valuemax="100" style={{
+
+                    width: this.state.directionRenderingPctComplete + '%'
+                }}>
+                Rendering Directions... {this.state.directionRenderingPctComplete}%
                 </div>
             </div>
         );
@@ -146,7 +184,19 @@ class AppWrapper extends Component {
                 </div>
                 <div className="row">
                     <div className="col-xs-12 col-sm-6 col-md-8">
-                        <TspMapWrapper places={this.state.places} highlightedPlace={this.state.highlightedPlace} center={this.state.mapCenter} onClearHighlight={this.clearHighlightedPlace.bind(this)} onAddPlace={this.addPlace.bind(this)} onRemovePlace={this.removePlace.bind(this)} google={this.props.google} route={this.state.route}/>
+                        <TspMapWrapper
+                            places={this.state.places}
+                            highlightedPlace={this.state.highlightedPlace}
+                            center={this.state.mapCenter}
+                            onClearHighlight={this.clearHighlightedPlace.bind(this)}
+                            onAddPlace={this.addPlace.bind(this)}
+                            onRemovePlace={this.removePlace.bind(this)}
+                            google={this.props.google}
+                            route={this.state.route}
+                            onStartRenderDirections={this.onStartRenderDirections.bind(this)}
+                            onRenderDirectionProgress={this.onRenderDirectionProgress.bind(this)}
+                            onFinishRenderDirections={this.onFinishRenderDirections.bind(this)}
+                        />
                     </div>
                     <div className="col-xs-6 col-md-4">
                         <Tabs
@@ -168,8 +218,11 @@ class AppWrapper extends Component {
                         <TabPanel><h2>Settings</h2></TabPanel>
                         </Tabs>
                             <form>
-                                {this.state.isProcessing
+                                {this.state.isProcessingRoute
                                     ? this.renderProgress()
+                                    : null}
+                                {this.state.isRenderingDirections
+                                    ? this.renderDirectionIndicator()
                                     : null}
 
                                 <div className="btn-group" role="group">
@@ -177,7 +230,7 @@ class AppWrapper extends Component {
                                         <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
                                         Clear Route
                                     </button>
-                                    <button disabled={!this.canCalculate()} type="button" className="btn btn-primary btn-lg" onClick={this.calculateRoundTrip.bind(this)}>
+                                    <button disabled={!this.canCalculate()} type="button" className="btn btn-primary btn-lg" onClick={this.computeBestRoute.bind(this)}>
                                         <span className="glyphicon glyphicon-play-circle" aria-hidden="true"></span>
                                         Calculate Round Trip
                                     </button>

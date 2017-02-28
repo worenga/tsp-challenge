@@ -94,7 +94,7 @@ TspTargetList.defaultProps = {
 }
 
 TspTargetList.propTypes = {
-  onRemovePlace: React.PropTypes.function,
+  onRemovePlace: React.PropTypes.func,
   places: React.PropTypes.array
 }
 
