@@ -2,37 +2,43 @@ import axios from 'axios';
 
 const STATUS_PROGRESS_MADE='PROGRESS'
 const STATUS_NO_RESULT_YET='INPROGRESS'
-const STATUS_NOT_FOUND='NOT FOUND'
-const STATUS_ERROR='ERROR'
 const STATUS_FINISHED='DONE'
 
 import {getDistanceMatrix} from './distanceMatrix'
 import {getFallBackDistanceMatrix} from './fallbackDistance'
 
-function fixMissingValues(distanceMatrix, fallbackDistanceMatrix)
+function fixMissingValues(distanceMatrix, fallbackDistanceMatrix, options)
 {
     for(let i=0;i<distanceMatrix.length;i++)
         {
             for(let j=0;j<distanceMatrix[i].length;j++)
                 {
-                    if(!distanceMatrix[i][j])
+                    if(distanceMatrix[i][j]===undefined)
                     {
-                        distanceMatrix[i][j] = fallbackDistanceMatrix[i][j];
+                        if(options.fallbackStrategy !== "NONE")
+                        {
+                            distanceMatrix[i][j] = fallbackDistanceMatrix[i][j];
+                        }
+                        else
+                        {
+                            return false;
+                        }
+
                     }
                 }
         }
-    return distanceMatrix
+    return true;
 }
 
 
 function queryStatus(context)
 {
-  return axios.get('/api/solver/status/'+context.jobId);
+  return axios.get(`/api/solver/status/${context.jobId}`);
 }
 
 function cleanup(context)
 {
-  return axios.post('/api/solver/cleanup/'+context.jobId);
+  return axios.post(`/api/solver/cleanup/${context.jobId}`);
 }
 
 function recurse(context)   // asynchronous recursive function
@@ -66,43 +72,46 @@ function recurse(context)   // asynchronous recursive function
 export default function calculateRoundTrip(google, places, progress_callback, options)
 {
     options = options || {};
-    options.travelMode = options.travelMode || google.maps.TravelMode.DRIVING;
+    options.iterations = options.iterations || 3000;
 
-
-    let context = {
+    let job_context = {
         jobId: undefined,
         progressCallback: progress_callback,
     }
 
     let fallbackDistanceMatrix = getFallBackDistanceMatrix(places);
     return getDistanceMatrix(google, places, options, fallbackDistanceMatrix)
-    .then( (distanceMatrix) => {
-      fixMissingValues(distanceMatrix, fallbackDistanceMatrix)
+    .then( (context) => {
+      const canContinue = fixMissingValues(context.matrix, fallbackDistanceMatrix, options);
+      if(!canContinue)
+      {
+        throw Error("Distance Model does not provide distances for some targets");
+      }
+
+      job_context['context'] = context;
       return axios.post('/api/solver/start', {
-            iterations: 3000,
-            distanceMatrix: distanceMatrix
+            iterations: options.iterations,
+            distanceMatrix: context.matrix
           })
     .then(function (response) {
-      context.jobId = response.data.job_id;
-      return recurse(context);
+      job_context.jobId = response.data.job_id;
+      return recurse(job_context);
     })
     .then((state) => {
       if(!state.data.best_path)
       {
         throw Error("No best path found!");
-
       }else{
-
         let new_place_order = []
         state.data.best_path.forEach( idx => { new_place_order.push(places[idx])});
-        return new_place_order;
+        return {error: false, result: new_place_order};
       }
     })
     .catch((error) => {
-      console.error(error)
+      throw error;
     })
     .finally( () => {
-      cleanup(context);
+      cleanup(job_context);
     });
 
         }

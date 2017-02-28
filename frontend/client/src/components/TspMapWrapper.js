@@ -24,7 +24,6 @@ class TspMapWrapper extends Component {
             this.setState({showingInfoWindow: false, activeMarker: null, activeMapMarker: null})
         } else {
             const {google,onAddPlace} = this.props;
-            console.log(event.latLng.lat(),event.latLng.lng())
             let geocoder = new google.maps.Geocoder();
             let data = {
                 location: event.latLng
@@ -59,11 +58,6 @@ class TspMapWrapper extends Component {
                 onAddPlace(place)
             });
         }
-    }
-
-    meh(place)
-    {
-        console.log("print");
     }
 
     renderActiveMarker()
@@ -116,6 +110,7 @@ class TspMapWrapper extends Component {
                         onStartRenderDirections={this.props.onStartRenderDirections}
                         onRenderDirectionProgress={this.props.onRenderDirectionProgress}
                         onFinishRenderDirections={this.props.onFinishRenderDirections}
+                        directionDistanceModel={this.props.directionDistanceModel}
                      />
                 </Map>
             </div>
@@ -130,7 +125,8 @@ TspMapWrapper.propTypes = {
     initialCenter: React.PropTypes.object,
     onStartRenderDirections: React.PropTypes.func,
     onRenderDirectionProgress: React.PropTypes.func,
-    onFinishRenderDirections: React.PropTypes.func
+    onFinishRenderDirections: React.PropTypes.func,
+    directionDistanceModel: React.PropTypes.string
 }
 
 TspMapWrapper.defaultProps = {

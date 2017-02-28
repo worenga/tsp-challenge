@@ -11,18 +11,33 @@ export function getDistanceMatrix(google, places, options, fallbackDistanceMatri
     };
 
     options = options || {}
-    options.travelMode = options.travelMode || google.maps.TravelMode.DRIVING;
-    options.useLineOfSight = options.useLineOfSight || false;
+
+    options.useLineOfSight = options.distanceModel === "LINE_OF_SIGHT";
+
+    if(options.distanceModel === "DRIVING")
+    {
+        options.travelMode = google.maps.TravelMode.DRIVING;
+    }
+    else if(options.distanceModel === "WALKING")
+    {
+        options.travelMode = google.maps.TravelMode.WALKING;
+    }
+    else if(options.distanceModel ==="TRANSIT")
+    {
+        options.travelMode = google.maps.TravelMode.TRANSIT;
+    }
+
     options.transitOptions = options.transitOptions || defaultTransitOptions;
     options.drivingOptions = options.drivingOptions || defaultDrivingOptions;
     options.avoidHighways = options.avoidHighways || false;
     options.avoidTolls = options.avoidTolls || false;
-    options.useDuration = options.useDuration || false;
+
+    options.useDuration = options.metric ==="DURATION" ;
 
     if (options.useLineOfSight) {
-        return new Promise((reject, resolve) => {
-            resolve(fallbackDistanceMatrix);
-        })
+        return new Promise((resolve, reject) => {
+            resolve({matrix: fallbackDistanceMatrix, meta:null});
+        });
     }
     else
     {
@@ -66,7 +81,7 @@ export function getDistanceMatrix(google, places, options, fallbackDistanceMatri
                     let metric;
 
                     if (status !== google.maps.DistanceMatrixElementStatus.OK) {
-                        console.log("Error Route from ", from, "to", to, "cannot be computed!")
+                        console.error("Error Route from ", from, "to", to, "cannot be computed!")
                         metric = undefined;
                     }
                     else
@@ -85,7 +100,7 @@ export function getDistanceMatrix(google, places, options, fallbackDistanceMatri
                 distanceMatrix[i] = col;
             }
 
-            return distanceMatrix;
+            return {matrix: distanceMatrix, meta: response};
         });
 
     }

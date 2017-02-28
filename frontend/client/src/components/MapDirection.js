@@ -57,27 +57,32 @@ export class MapDirection extends Component {
                 return;
             }
             display.set('directions', null);
+            if(this.props.directionDistanceModel === "LINE_OF_SIGHT")
+            {
+                //Render using fallback line of sight
+                return resolve("ZERO_RESULTS",undefined);
+            }
             let start = {
                 'placeId': from.place_id
             }
             let end = {
                 'placeId': to.place_id
             }
+
+
             let request = {
                 origin: start,
                 destination: end,
-                travelMode: 'DRIVING', //TODO
+                travelMode: this.props.directionDistanceModel , //TODO
                 provideRouteAlternatives: false
             };
             service.route(request, function(result, status) {
-                console.log("STATUS:::", status);
                 if (status === 'OK') {
                     display.setDirections(result);
                     resolve(status, result);
                 } else if (status === "ZERO_RESULTS") {
                     resolve(status, result);
                 } else {
-
                     reject(status, result);
                 }
             });
@@ -246,7 +251,9 @@ export class MapDirection extends Component {
 MapDirection.propTypes = {
   onStartRenderDirections: React.PropTypes.func,
   onRenderDirectionProgress: React.PropTypes.func,
-  onFinishRenderDirections: React.PropTypes.func
+  onFinishRenderDirections: React.PropTypes.func,
+  directionDistanceModel: React.PropTypes.string
+
 }
 
 MapDirection.defaultProps = {
