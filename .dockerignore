@@ -1,0 +1,9 @@
+.git
+.gitignore
+coverage
+**/build
+**/node_modules
+**/.DS_Store
+.env
+**/npm-debug.log
+**/core
