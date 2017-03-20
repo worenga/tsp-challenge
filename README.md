@@ -17,14 +17,14 @@ Zuletzt entsteht eine Distanzmatrix der einzelnen Orte zueinander unter Beruecks
 Nachdem die Distanzen zu den Zielen untereinander berechnet wurden, wird eine C++ Backend Applikation gestartet die mithilfe eines Genetischen Algorithmus
 das TSP Problem optimiert und eine route berechnet.
 
-Die C++ Applikation laeuft asynchron zum Frontend und die zwischenresultate bzw. der Fortschritt wird in einem Redis Speicher vorgehalten.
+Die C++ Applikation laeuft asynchron zum Frontend und die Zwischenresultate bzw. der Fortschritt wird in einem Redis Speicher vorgehalten.
 
-Sobald der Genetische Algorithmus terminiert und eine optimierte Route zurueckliefert, stellt das Frontend fuer jede Strecke der Route Anfragen an die Google Directions API und versucht Wegbeschreibungen darzustellen.
+Sobald der genetische Algorithmus terminiert und eine optimierte Route zurueckliefert, stellt das Frontend fuer jede Strecke der Route Anfragen an die Google Directions API und versucht Wegbeschreibungen darzustellen (Das ist insbesondere Interkontinental nicht immer moeglich, in diesem Fall wird ein Fallback auf Luftlinie bereitgestellt).
 
 ## Systemarchitektur
 
 Das System besteht aus einem React-Frontend sowie einem Node.js-Express Webserver.
-Der Node.js Webserver wird miuthilfe von pm2 und nginx geloadbalanced.
+Der Node.js Webserver wird mithilfe von pm2 und nginx geloadbalanced.
 Die Instanzen des Webservers rufen die C++ Applikation auf fuer den genetischen Algorithmus zur Optimierung auf.
 Die C++ Applikation nutzt die Geneial Library (der Autor ist ebenfalls Maintainer dieser Library und hat die GeneiAL Library fuer die Challenge um die erforderliche Funktionalitaet erweitert).
 
