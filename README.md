@@ -43,7 +43,7 @@ Das Verfahren garantiert keine optimale Loesung aber terminiert dafuer determini
 
 Die Installation ist am einfachsten ueber das Docker image:
 
-Ein Entsprechend vorbereitetes Docker image findet sich unter https://docker.io/worenga/tsp-challenge
+Ein Entsprechend vorbereitetes Docker image findet sich unter https://hub.docker.com/r/worenga/tsp-challenge/
 
 ```
 docker pull worenga/tsp-challenge:latest
@@ -51,7 +51,7 @@ docker pull worenga/tsp-challenge:latest
 
 Anschliessend kann die Applikation ueber
 ```
-docker run -ti -p 4000:6700 worenga/tsp-challenge:latest
+docker run -ti -p 4000:4000 worenga/tsp-challenge:latest
 ```
 
 gestartet werden.
