@@ -41,6 +41,10 @@ Ueber diesen stochastischen Prozess werden die Loesungen der Population sukzessi
 
 Das Verfahren garantiert keine optimale Loesung aber terminiert dafuer deterministisch und approximiert die optimale TSP Loesung.
 
+## Live Demo
+
+Das bereitgestellte Docker Image wird auf der Google Cloud Engine gehostet http://104.199.16.87:4000/
+
 ## Installation
 
 Die Installation ist am einfachsten ueber das Docker image:
