@@ -10,8 +10,8 @@ Das System orientiert benutzt die Google Maps Geocoding API als Datenquelle um A
 Jeder Ort wird zunaechst ueber die Geocoding API gesucht und schon clientseitig zur Latitude/Longitude Koordinaten umgerechnet.
 
 Zusaechlich wird der Google Place Identifier zum dem jeweiligen Ort gespeichert.
-Nachdem der Benutzer hinreichend viele Ziele in die App eingefuegt hat, wird ueber den Google Maps Distance Matrix Service die Distanz der Einzelnen Ziele zueinander berechnet.
-Dabei wird auf Benutzerpraeferenzen wert gelegt (Distanz vs. Dauer, Fahrt mit dem Auto vs. Fussweg, etc.).
+Nachdem der Benutzer hinreichend viele Ziele in die App eingefuegt hat, wird ueber den Google Maps Distance Matrix Service die Distanz der einzelnen Ziele zueinander berechnet.
+Dabei wird auf Benutzerpraeferenzen Wert gelegt (Distanz vs. Dauer, Fahrt mit dem Auto vs. Fussweg, etc.).
 Zuletzt entsteht eine Distanzmatrix der einzelnen Orte zueinander unter Beruecksichtigung der einzelnen Metriken.
 
 Nachdem die Distanzen zu den Zielen untereinander berechnet wurden, wird eine C++ Backend Applikation gestartet die mithilfe eines Genetischen Algorithmus
@@ -37,9 +37,9 @@ Loesungskandidaten (zunaechst zufaellig ausgewaehlt) werden in einer Population 
 Loesungen paaren sich zufaellig miteinander und es entstehen so neue Loesungen, die evaluiert werden koennen.
 Loesungenskandidaten besitzen eine Fitness, nach gewisser Zeit werden Loesungskandidaten mit geringer Fitness aussterben, waehrend Loesungskandidaten mit hoher Fitness ueberleben.
 Darueberhinaus gibt es Mutation: Loesungskandidaten koennen mit geringer Wahrscheinlichkeit mutieren.
-Ueber diesen stochastischen Prozess werden die Loesungen der Population sukzessive Besser. Nach einer Fixen Anzahl von Iterationen (auch Generationen) wird der Loesungskandidat mit der besten Fitness gewaehlt.
+Ueber diesen stochastischen Prozess werden die Loesungen der Population sukzessive besser. Nach einer vorgegebenen Anzahl von Iterationen (auch Generationen) wird der Loesungskandidat mit der besten Fitness (d.h. dem kuerzesten Interknotendistanz) gewaehlt.
 
-Das Verfahren garantiert keine optimale Loesung aber terminiert dafuer deterministisch und approximiert die optimale TSP Loesung.
+Das Verfahren garantiert keine optimale Loesung, terminiert dafuer aber immer deterministisch in konstanter Zeit und approximiert die optimale TSP Loesung.
 
 ## Live Demo
 
@@ -47,9 +47,9 @@ Das bereitgestellte Docker Image wird auf der Google Cloud Engine gehostet http:
 
 ## Installation
 
-Die Installation ist am einfachsten ueber das Docker image:
+Die Installation ist am einfachsten ueber das Docker Image:
 
-Ein Entsprechend vorbereitetes Docker image findet sich unter https://hub.docker.com/r/worenga/tsp-challenge/
+Ein Entsprechend vorbereitetes Docker Image findet sich unter https://hub.docker.com/r/worenga/tsp-challenge/
 
 ```
 docker pull worenga/tsp-challenge:latest
